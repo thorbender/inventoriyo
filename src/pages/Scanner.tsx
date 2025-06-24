@@ -1,8 +1,8 @@
-import React, { useRef, useState, useEffect } from "react";
-import { Html5Qrcode, Html5QrcodeSupportedFormats } from "html5-qrcode";
+import React, { useState } from "react";
 import { supabase } from "../supabaseClient";
 import { FiCamera, FiSearch, FiBox, FiX, FiUpload } from "react-icons/fi";
 import { NavLink } from "react-router-dom";
+import { BarcodeScanner } from "../components/BarcodeScanner";
 
 const Scanner: React.FC = () => {
   const [ean, setEan] = useState("");
@@ -12,8 +12,6 @@ const Scanner: React.FC = () => {
   const [productFound, setProductFound] = useState(false);
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
-  const [isInitializingCamera, setIsInitializingCamera] = useState(false);
-  const scannerRef = useRef<Html5Qrcode | null>(null);
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -40,60 +38,17 @@ const Scanner: React.FC = () => {
     }
   };
 
-  // Start the camera and scanner when showScanner becomes true
-  useEffect(() => {
-    if (showScanner) {
-      const startScanner = async () => {
-        setIsInitializingCamera(true);
-        setStatus("");
-        try {
-          if (scannerRef.current) {
-            await scannerRef.current.stop();
-            scannerRef.current.clear();
-            scannerRef.current = null;
-          }
+  const handleScan = (code: string) => {
+    setEan(code);
+    setShowScanner(false);
+    searchProduct(code);
+  };
 
-          scannerRef.current = new Html5Qrcode("reader");
-          
-          await scannerRef.current.start(
-            { facingMode: "environment" },
-            {
-              fps: 10,
-              qrbox: { width: 300, height: 100 }
-            },
-            (decodedText) => {
-              setEan(decodedText);
-              setShowScanner(false);
-              searchProduct(decodedText);
-            },
-            () => {}
-          );
-        } catch (err) {
-          console.error("Scanner Error:", err);
-          setStatus("Camera error: " + (err as Error).message);
-          setShowScanner(false);
-        } finally {
-          setIsInitializingCamera(false);
-        }
-      };
-      startScanner();
-    }
-    
-    return () => {
-      if (scannerRef.current) {
-        scannerRef.current.stop().then(() => {
-          if (scannerRef.current) {
-            scannerRef.current.clear();
-            scannerRef.current = null;
-          }
-        }).catch(() => {
-          if (scannerRef.current) {
-            scannerRef.current = null;
-          }
-        });
-      }
-    };
-  }, [showScanner]);
+  const handleError = (error: string) => {
+    console.error("Scanner error:", error);
+    setStatus("Camera error: " + error);
+    setShowScanner(false);
+  };
 
   // Handle manual EAN entry
   const handleEanChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -178,21 +133,10 @@ const Scanner: React.FC = () => {
             </div>
             {showScanner ? (
               <div className="w-full flex flex-col items-center gap-4">
-                <div 
-                  id="reader" 
-                  className="w-full aspect-[16/9] rounded-xl overflow-hidden bg-black relative"
-                >
-                  {isInitializingCamera && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
-                      <p className="text-gray-500">Initializing camera...</p>
-                    </div>
-                  )}
-                  {!isInitializingCamera && (
-                    <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-[100px] pointer-events-none">
-                      <div className="h-full mx-auto border-2 border-white/50 rounded-lg" style={{ maxWidth: '300px' }} />
-                    </div>
-                  )}
-                </div>
+                <BarcodeScanner 
+                  onScan={handleScan}
+                  onError={handleError}
+                />
                 <button
                   className="w-full bg-gray-100 text-black px-6 py-4 rounded-3xl font-medium hover:bg-gray-200 transition-colors"
                   onClick={() => setShowScanner(false)}
