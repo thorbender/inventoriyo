@@ -53,10 +53,15 @@ const Scanner: React.FC = () => {
           // Create new instance
           scannerRef.current = new Html5Qrcode("reader");
           await scannerRef.current.start(
-            { facingMode: "environment" },
+            { 
+              facingMode: "environment",
+              aspectRatio: 1.777778
+            },
             {
-              fps: 10,
-              qrbox: { width: 250, height: 100 },
+              fps: 15,
+              qrbox: { width: 300, height: 150 },
+              aspectRatio: 1.777778,
+              disableFlip: false
             },
             (decodedText) => {
               setEan(decodedText);
@@ -176,7 +181,7 @@ const Scanner: React.FC = () => {
             </div>
             {showScanner ? (
               <div className="w-full flex flex-col items-center gap-4">
-                <div id="reader" className="w-full aspect-video" />
+                <div id="reader" className="w-full aspect-[16/9] rounded-xl overflow-hidden" />
                 <button
                   className="w-full bg-gray-100 text-black px-6 py-4 rounded-3xl font-medium hover:bg-gray-200 transition-colors"
                   onClick={() => setShowScanner(false)}
