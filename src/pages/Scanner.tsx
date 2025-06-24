@@ -42,37 +42,55 @@ const Scanner: React.FC = () => {
   // Start the camera and scanner when showScanner becomes true
   useEffect(() => {
     if (showScanner) {
-      if (!scannerRef.current) {
-        scannerRef.current = new Html5Qrcode("reader");
-      }
-      scannerRef.current
-        .start(
-          { facingMode: "environment" },
-          {
-            fps: 10,
-            qrbox: { width: 250, height: 100 },
-          },
-          (decodedText) => {
-            setEan(decodedText);
-            setShowScanner(false);
-            scannerRef.current?.stop();
-            searchProduct(decodedText);
-          },
-          (_) => {
-            // Optionally handle scan errors
+      const startScanner = async () => {
+        try {
+          // Clear any existing instance
+          if (scannerRef.current) {
+            await scannerRef.current.stop();
+            scannerRef.current.clear();
+            scannerRef.current = null;
           }
-        )
-        .catch((err) => {
+          // Create new instance
+          scannerRef.current = new Html5Qrcode("reader");
+          await scannerRef.current.start(
+            { facingMode: "environment" },
+            {
+              fps: 10,
+              qrbox: { width: 250, height: 100 },
+            },
+            (decodedText) => {
+              setEan(decodedText);
+              setShowScanner(false);
+              searchProduct(decodedText);
+            },
+            (_) => {
+              // Optionally handle scan errors
+            }
+          );
+        } catch (err) {
           setStatus("Camera error: " + (err as Error).message);
-        });
+          setShowScanner(false);
+        }
+      };
+      startScanner();
     }
-    // Cleanup on hide
+    
+    // Cleanup function
     return () => {
-      if (scannerRef.current && showScanner === false) {
-        scannerRef.current.stop().catch(() => {});
+      if (scannerRef.current) {
+        scannerRef.current.stop().then(() => {
+          if (scannerRef.current) {
+            scannerRef.current.clear();
+            scannerRef.current = null;
+          }
+        }).catch(() => {
+          // Handle any cleanup errors silently
+          if (scannerRef.current) {
+            scannerRef.current = null;
+          }
+        });
       }
     };
-    // eslint-disable-next-line
   }, [showScanner]);
 
   // Handle manual EAN entry
