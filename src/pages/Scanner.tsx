@@ -148,7 +148,7 @@ const Scanner: React.FC = () => {
 
   return (
     <div className="flex flex-col flex-1">
-      <div className="p-4 pb-24 space-y-4">
+      <div className="p-4 pb-24 space-y-4 max-w-md mx-auto w-full">
         {/* Scan or Search Card */}
         <div className="bg-white p-8">
           <div className="flex flex-col items-center gap-8">

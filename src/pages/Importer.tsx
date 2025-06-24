@@ -60,7 +60,7 @@ const Importer: React.FC = () => {
 
   return (
     <div className="flex flex-col flex-1">
-      <div className="p-4 space-y-4">
+      <div className="p-4 space-y-4 max-w-md mx-auto w-full">
         {/* Import Card */}
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <div className="space-y-4">
