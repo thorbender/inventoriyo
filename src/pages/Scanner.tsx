@@ -12,6 +12,7 @@ const Scanner: React.FC = () => {
   const [productFound, setProductFound] = useState(false);
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isInitializingCamera, setIsInitializingCamera] = useState(false);
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -43,58 +44,41 @@ const Scanner: React.FC = () => {
   useEffect(() => {
     if (showScanner) {
       const startScanner = async () => {
+        setIsInitializingCamera(true);
+        setStatus("");
         try {
-          // Clear any existing instance
           if (scannerRef.current) {
             await scannerRef.current.stop();
             scannerRef.current.clear();
             scannerRef.current = null;
-            // Give the DOM time to clean up
-            await new Promise(resolve => setTimeout(resolve, 100));
           }
 
-          // Make sure the element exists
-          const readerElement = document.getElementById("reader");
-          if (!readerElement) {
-            throw new Error("Scanner element not found");
-          }
-
-          // Create new instance
-          scannerRef.current = new Html5Qrcode("reader", { 
-            verbose: true,
-            formatsToSupport: [] // empty array means support all formats
-          });
-
+          scannerRef.current = new Html5Qrcode("reader");
+          
           await scannerRef.current.start(
-            { 
-              facingMode: "environment",
-              aspectRatio: 1.777778
-            },
+            { facingMode: "environment" },
             {
-              fps: 15,
-              qrbox: { width: 300, height: 150 },
-              aspectRatio: 1.777778,
-              disableFlip: false
+              fps: 10,
+              qrbox: 250
             },
             (decodedText) => {
               setEan(decodedText);
               setShowScanner(false);
               searchProduct(decodedText);
             },
-            (errorMessage) => {
-              console.log("QR Error:", errorMessage);
-            }
+            () => {}
           );
         } catch (err) {
           console.error("Scanner Error:", err);
           setStatus("Camera error: " + (err as Error).message);
           setShowScanner(false);
+        } finally {
+          setIsInitializingCamera(false);
         }
       };
       startScanner();
     }
     
-    // Cleanup function
     return () => {
       if (scannerRef.current) {
         scannerRef.current.stop().then(() => {
@@ -102,9 +86,7 @@ const Scanner: React.FC = () => {
             scannerRef.current.clear();
             scannerRef.current = null;
           }
-        }).catch((err) => {
-          console.error("Cleanup Error:", err);
-          // Handle any cleanup errors silently
+        }).catch(() => {
           if (scannerRef.current) {
             scannerRef.current = null;
           }
@@ -198,9 +180,14 @@ const Scanner: React.FC = () => {
               <div className="w-full flex flex-col items-center gap-4">
                 <div 
                   id="reader" 
-                  className="w-full aspect-[16/9] rounded-xl overflow-hidden bg-gray-100"
-                  style={{ minHeight: '300px' }}
-                />
+                  className="w-full aspect-[16/9] rounded-xl overflow-hidden bg-gray-100 relative"
+                >
+                  {isInitializingCamera && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+                      <p className="text-gray-500">Initializing camera...</p>
+                    </div>
+                  )}
+                </div>
                 <button
                   className="w-full bg-gray-100 text-black px-6 py-4 rounded-3xl font-medium hover:bg-gray-200 transition-colors"
                   onClick={() => setShowScanner(false)}
