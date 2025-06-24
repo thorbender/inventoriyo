@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from "react";
-import { Html5Qrcode } from "html5-qrcode";
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from "html5-qrcode";
 import { supabase } from "../supabaseClient";
 import { FiCamera, FiSearch, FiBox, FiX, FiUpload } from "react-icons/fi";
 import { NavLink } from "react-router-dom";
@@ -53,13 +53,21 @@ const Scanner: React.FC = () => {
             scannerRef.current = null;
           }
 
-          scannerRef.current = new Html5Qrcode("reader");
+          scannerRef.current = new Html5Qrcode("reader", {
+            verbose: false,
+            formatsToSupport: [Html5QrcodeSupportedFormats.EAN_13]
+          });
           
           await scannerRef.current.start(
-            { facingMode: "environment" },
+            { 
+              facingMode: "environment",
+              aspectRatio: 16/9
+            },
             {
-              fps: 10,
-              qrbox: 250
+              fps: 30,
+              qrbox: { width: 400, height: 100 },
+              aspectRatio: 16/9,
+              disableFlip: true
             },
             (decodedText) => {
               setEan(decodedText);
@@ -180,11 +188,16 @@ const Scanner: React.FC = () => {
               <div className="w-full flex flex-col items-center gap-4">
                 <div 
                   id="reader" 
-                  className="w-full aspect-[16/9] rounded-xl overflow-hidden bg-gray-100 relative"
+                  className="w-full aspect-[16/9] rounded-xl overflow-hidden bg-black relative"
                 >
                   {isInitializingCamera && (
                     <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
                       <p className="text-gray-500">Initializing camera...</p>
+                    </div>
+                  )}
+                  {!isInitializingCamera && (
+                    <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-[100px] pointer-events-none">
+                      <div className="h-full mx-auto border-2 border-white/50 rounded-lg max-w-[400px]" />
                     </div>
                   )}
                 </div>
