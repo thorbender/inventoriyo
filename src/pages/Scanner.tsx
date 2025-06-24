@@ -53,21 +53,13 @@ const Scanner: React.FC = () => {
             scannerRef.current = null;
           }
 
-          scannerRef.current = new Html5Qrcode("reader", {
-            verbose: false,
-            formatsToSupport: [Html5QrcodeSupportedFormats.EAN_13]
-          });
+          scannerRef.current = new Html5Qrcode("reader");
           
           await scannerRef.current.start(
-            { 
-              facingMode: "environment",
-              aspectRatio: 16/9
-            },
+            { facingMode: "environment" },
             {
-              fps: 30,
-              qrbox: { width: 400, height: 100 },
-              aspectRatio: 16/9,
-              disableFlip: true
+              fps: 10,
+              qrbox: { width: 300, height: 100 }
             },
             (decodedText) => {
               setEan(decodedText);
@@ -197,7 +189,7 @@ const Scanner: React.FC = () => {
                   )}
                   {!isInitializingCamera && (
                     <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-[100px] pointer-events-none">
-                      <div className="h-full mx-auto border-2 border-white/50 rounded-lg max-w-[400px]" />
+                      <div className="h-full mx-auto border-2 border-white/50 rounded-lg" style={{ maxWidth: '300px' }} />
                     </div>
                   )}
                 </div>
