@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
+import { Html5Qrcode } from "html5-qrcode";
 import { supabase } from "../supabaseClient";
 import { FiCamera, FiSearch, FiBox, FiX, FiUpload } from "react-icons/fi";
 import { NavLink } from "react-router-dom";
-import { BarcodeScanner } from "../components/BarcodeScanner";
 
 const Scanner: React.FC = () => {
   const [ean, setEan] = useState("");
@@ -12,6 +12,7 @@ const Scanner: React.FC = () => {
   const [productFound, setProductFound] = useState(false);
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
+  const scannerRef = useRef<Html5Qrcode | null>(null);
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -38,17 +39,59 @@ const Scanner: React.FC = () => {
     }
   };
 
-  const handleScan = (code: string) => {
-    setEan(code);
-    setShowScanner(false);
-    searchProduct(code);
-  };
-
-  const handleError = (error: string) => {
-    console.error("Scanner error:", error);
-    setStatus("Camera error: " + error);
-    setShowScanner(false);
-  };
+  // Start the camera and scanner when showScanner becomes true
+  useEffect(() => {
+    if (showScanner) {
+      const startScanner = async () => {
+        try {
+          // Clear any existing instance
+          if (scannerRef.current) {
+            await scannerRef.current.stop();
+            scannerRef.current.clear();
+            scannerRef.current = null;
+          }
+          // Create new instance
+          scannerRef.current = new Html5Qrcode("reader");
+          await scannerRef.current.start(
+            { facingMode: "environment" },
+            {
+              fps: 10,
+              qrbox: { width: 250, height: 100 },
+            },
+            (decodedText) => {
+              setEan(decodedText);
+              setShowScanner(false);
+              searchProduct(decodedText);
+            },
+            (_) => {
+              // Optionally handle scan errors
+            }
+          );
+        } catch (err) {
+          setStatus("Camera error: " + (err as Error).message);
+          setShowScanner(false);
+        }
+      };
+      startScanner();
+    }
+    
+    // Cleanup function
+    return () => {
+      if (scannerRef.current) {
+        scannerRef.current.stop().then(() => {
+          if (scannerRef.current) {
+            scannerRef.current.clear();
+            scannerRef.current = null;
+          }
+        }).catch(() => {
+          // Handle any cleanup errors silently
+          if (scannerRef.current) {
+            scannerRef.current = null;
+          }
+        });
+      }
+    };
+  }, [showScanner]);
 
   // Handle manual EAN entry
   const handleEanChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -133,10 +176,7 @@ const Scanner: React.FC = () => {
             </div>
             {showScanner ? (
               <div className="w-full flex flex-col items-center gap-4">
-                <BarcodeScanner 
-                  onScan={handleScan}
-                  onError={handleError}
-                />
+                <div id="reader" className="w-full aspect-video" />
                 <button
                   className="w-full bg-gray-100 text-black px-6 py-4 rounded-3xl font-medium hover:bg-gray-200 transition-colors"
                   onClick={() => setShowScanner(false)}
