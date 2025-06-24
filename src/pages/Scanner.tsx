@@ -49,9 +49,22 @@ const Scanner: React.FC = () => {
             await scannerRef.current.stop();
             scannerRef.current.clear();
             scannerRef.current = null;
+            // Give the DOM time to clean up
+            await new Promise(resolve => setTimeout(resolve, 100));
           }
+
+          // Make sure the element exists
+          const readerElement = document.getElementById("reader");
+          if (!readerElement) {
+            throw new Error("Scanner element not found");
+          }
+
           // Create new instance
-          scannerRef.current = new Html5Qrcode("reader");
+          scannerRef.current = new Html5Qrcode("reader", { 
+            verbose: true,
+            formatsToSupport: [] // empty array means support all formats
+          });
+
           await scannerRef.current.start(
             { 
               facingMode: "environment",
@@ -68,11 +81,12 @@ const Scanner: React.FC = () => {
               setShowScanner(false);
               searchProduct(decodedText);
             },
-            (_) => {
-              // Optionally handle scan errors
+            (errorMessage) => {
+              console.log("QR Error:", errorMessage);
             }
           );
         } catch (err) {
+          console.error("Scanner Error:", err);
           setStatus("Camera error: " + (err as Error).message);
           setShowScanner(false);
         }
@@ -88,7 +102,8 @@ const Scanner: React.FC = () => {
             scannerRef.current.clear();
             scannerRef.current = null;
           }
-        }).catch(() => {
+        }).catch((err) => {
+          console.error("Cleanup Error:", err);
           // Handle any cleanup errors silently
           if (scannerRef.current) {
             scannerRef.current = null;
@@ -181,7 +196,11 @@ const Scanner: React.FC = () => {
             </div>
             {showScanner ? (
               <div className="w-full flex flex-col items-center gap-4">
-                <div id="reader" className="w-full aspect-[16/9] rounded-xl overflow-hidden" />
+                <div 
+                  id="reader" 
+                  className="w-full aspect-[16/9] rounded-xl overflow-hidden bg-gray-100"
+                  style={{ minHeight: '300px' }}
+                />
                 <button
                   className="w-full bg-gray-100 text-black px-6 py-4 rounded-3xl font-medium hover:bg-gray-200 transition-colors"
                   onClick={() => setShowScanner(false)}
