@@ -54,10 +54,21 @@ const Scanner: React.FC = () => {
           scannerRef.current = new Html5Qrcode("reader");
           await scannerRef.current.start(
             { facingMode: "environment" },
-            {
-              fps: 10,
-              qrbox: { width: 250, height: 100 },
-            },
+                          {
+                fps: 30,
+                qrbox: function(viewfinderWidth, viewfinderHeight) {
+                  // Make the scanning box responsive and larger
+                  const minEdgePercentage = 0.7;
+                  const minEdgeSize = Math.min(viewfinderWidth, viewfinderHeight);
+                  const qrboxSize = Math.floor(minEdgeSize * minEdgePercentage);
+                  return {
+                    width: Math.min(qrboxSize, 400),
+                    height: Math.min(qrboxSize * 0.4, 160)
+                  };
+                },
+                aspectRatio: 1.777778,
+                disableFlip: false
+              },
             (decodedText) => {
               setEan(decodedText);
               setShowScanner(false);
@@ -176,7 +187,15 @@ const Scanner: React.FC = () => {
             </div>
             {showScanner ? (
               <div className="w-full flex flex-col items-center gap-4">
-                <div id="reader" className="w-full aspect-video" />
+                <div className="w-full bg-black rounded-2xl overflow-hidden">
+                  <div id="reader" className="w-full aspect-video" />
+                </div>
+                <div className="text-center text-sm text-gray-600 px-4">
+                  <p className="mb-2">📱 <strong>Scanning Tips:</strong></p>
+                  <p className="mb-1">• Hold phone 6-12 inches from barcode</p>
+                  <p className="mb-1">• Ensure good lighting or use device flashlight</p>
+                  <p className="mb-3">• Keep barcode centered in the scanning area</p>
+                </div>
                 <button
                   className="w-full bg-gray-100 text-black px-6 py-4 rounded-3xl font-medium hover:bg-gray-200 transition-colors"
                   onClick={() => setShowScanner(false)}
