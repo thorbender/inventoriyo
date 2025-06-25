@@ -4,6 +4,8 @@ import { supabase } from "../supabaseClient";
 import { FiCamera, FiSearch, FiBox, FiX, FiUpload } from "react-icons/fi";
 import { NavLink } from "react-router-dom";
 
+// Enhanced barcode scanner with improved distance scanning
+
 const Scanner: React.FC = () => {
   const [ean, setEan] = useState("");
   const [quantity, setQuantity] = useState<number | "">("");
