@@ -71,7 +71,7 @@ const Scanner: React.FC = () => {
                 },
                 aspectRatio: 1.777778,
                 disableFlip: false,
-                formatsToSupport: [
+                supportedScanTypes: [
                   Html5QrcodeSupportedFormats.EAN_13,
                   Html5QrcodeSupportedFormats.EAN_8,
                   Html5QrcodeSupportedFormats.UPC_A,
