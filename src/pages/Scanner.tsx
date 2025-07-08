@@ -3,6 +3,7 @@ import { Html5Qrcode } from "html5-qrcode";
 import { supabase } from "../supabaseClient";
 import { FiCamera, FiSearch, FiBox, FiX, FiUpload } from "react-icons/fi";
 import { NavLink } from "react-router-dom";
+import { Html5QrcodeSupportedFormats } from "html5-qrcode";
 
 // Enhanced barcode scanner with improved distance scanning
 
@@ -57,7 +58,7 @@ const Scanner: React.FC = () => {
           await scannerRef.current.start(
             { facingMode: "environment" },
                           {
-                fps: 30,
+                fps: 10,
                 qrbox: function(viewfinderWidth, viewfinderHeight) {
                   // Make the scanning box responsive and larger
                   const minEdgePercentage = 0.7;
@@ -70,6 +71,13 @@ const Scanner: React.FC = () => {
                 },
                 aspectRatio: 1.777778,
                 disableFlip: false
+                formatsToSupport: [
+                  Html5QrcodeSupportedFormats.EAN_13,
+                  Html5QrcodeSupportedFormats.EAN_8,
+                  Html5QrcodeSupportedFormats.UPC_A,
+                  Html5QrcodeSupportedFormats.UPC_E,
+                  Html5QrcodeSupportedFormats.CODE_128
+                ]
               },
             (decodedText) => {
               setEan(decodedText);
