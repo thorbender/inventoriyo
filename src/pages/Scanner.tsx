@@ -54,7 +54,15 @@ const Scanner: React.FC = () => {
             scannerRef.current = null;
           }
           // Create new instance
-          scannerRef.current = new Html5Qrcode("reader");
+          scannerRef.current = new Html5Qrcode("reader", {
+            formatsToSupport: [
+              Html5QrcodeSupportedFormats.EAN_13,
+              Html5QrcodeSupportedFormats.EAN_8,
+              Html5QrcodeSupportedFormats.UPC_A,
+              Html5QrcodeSupportedFormats.UPC_E,
+              Html5QrcodeSupportedFormats.CODE_128
+            ]
+          });
           await scannerRef.current.start(
             { facingMode: "environment" },
                           {
@@ -70,14 +78,7 @@ const Scanner: React.FC = () => {
                   };
                 },
                 aspectRatio: 1.777778,
-                disableFlip: false,
-                supportedScanTypes: [
-                  Html5QrcodeSupportedFormats.EAN_13,
-                  Html5QrcodeSupportedFormats.EAN_8,
-                  Html5QrcodeSupportedFormats.UPC_A,
-                  Html5QrcodeSupportedFormats.UPC_E,
-                  Html5QrcodeSupportedFormats.CODE_128
-                ]
+                disableFlip: false
               },
             (decodedText) => {
               setEan(decodedText);
