@@ -70,7 +70,7 @@ const Scanner: React.FC = () => {
                   };
                 },
                 aspectRatio: 1.777778,
-                disableFlip: false
+                disableFlip: false,
                 formatsToSupport: [
                   Html5QrcodeSupportedFormats.EAN_13,
                   Html5QrcodeSupportedFormats.EAN_8,
