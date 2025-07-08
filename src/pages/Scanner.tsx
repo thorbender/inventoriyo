@@ -3,7 +3,6 @@ import { Html5Qrcode } from "html5-qrcode";
 import { supabase } from "../supabaseClient";
 import { FiCamera, FiSearch, FiBox, FiX, FiUpload } from "react-icons/fi";
 import { NavLink } from "react-router-dom";
-import { Html5QrcodeSupportedFormats } from "html5-qrcode";
 
 // Enhanced barcode scanner with improved distance scanning
 
